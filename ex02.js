@@ -29,7 +29,7 @@ function remeberMyFilms()
         const a = prompt('Один из последних просмотренных фильмов?');
         const b = prompt('На сколько оцените его?');
     
-        if (a != null && b != null && a != '' && b != '' && a != a.length < 50)
+        if (a != null && b != null  && a != '' && b != '' && a != a.length < 50)
         {
             personalMovieDB.movies[a] = b;
         }
