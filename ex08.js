@@ -1,48 +1,54 @@
-window.addEventListener('DOMContentLoaded', () =>{
+window.addEventListener('DOMContentLoaded', function() {
 
-    const tabParent = document.querySelector('.tabheader__items'),
-    tabsContent = document.querySelectorAll('.tabcontent'),
-    tabs = document.querySelectorAll('.tabheader__item');
+    // Tabs
+    
+	let tabs = document.querySelectorAll('.tabheader__item'),
+		tabsContent = document.querySelectorAll('.tabcontent'),
+		tabsParent = document.querySelector('.tabheader__items');
 
-    function hideTabContent () {
+	function hideTabContent() {
+        
         tabsContent.forEach(item => {
-            item.style.display = 'none';
+            item.classList.add('hide');
+            item.classList.remove('show', 'fade');
         });
 
-        tabsContent.forEach(item => {
+        tabs.forEach(item => {
             item.classList.remove('tabheader__item_active');
         });
+	}
+
+	function showTabContent(i = 0) {
+        tabsContent[i].classList.add('show', 'fade');
+        tabsContent[i].classList.remove('hide');
+        tabs[i].classList.add('tabheader__item_active');
     }
     
-    function showTabContent (i = 0) {
-        tabsContent[i].style.display = 'block';
-        tabsContent[i].classList.add('tabheader__item_active');
-    }
-
     hideTabContent();
     showTabContent();
 
-    tabParent.addEventListener('click', (event) => {
-        const target = event.target;
-
-        if (target && target.classList.contains('tabheader__item')){
+	tabsParent.addEventListener('click', function(event) {
+		const target = event.target;
+		if(target && target.classList.contains('tabheader__item')) {
             tabs.forEach((item, i) => {
                 if (target == item) {
                     hideTabContent();
                     showTabContent(i);
                 }
             });
-        }
+		}
     });
+    
+    // Timer
 
-    const deadLine = '2021-09-20';
+    const deadline = '2021-09-11';
 
-    function getTimeReamaining(endtime) {
+    function getTimeRemaining(endtime) {
         const t = Date.parse(endtime) - Date.parse(new Date()),
-            days = Math.floor(t / (1000 * 60 * 60 * 24)),
-            hours = Math.floor((t / (1000 * 60 * 60)) % 24 ),
-            minutes = Math.floor((t / 1000 / 60) % 60),
-            seconds = Math.floor((t / 1000) % 60);
+            days = Math.floor( (t/(1000*60*60*24)) ),
+            seconds = Math.floor( (t/1000) % 60 ),
+            minutes = Math.floor( (t/1000/60) % 60 ),
+            hours = Math.floor( (t/(1000*60*60) % 24) );
 
         return {
             'total': t,
@@ -51,19 +57,20 @@ window.addEventListener('DOMContentLoaded', () =>{
             'minutes': minutes,
             'seconds': seconds
         };
-    }  
+    }
 
-    function getZero(num) {
-        if (num >= 0 && num <= 9){
-            return (num = `0${num}`);
-        }else {
+    function getZero(num){
+        if (num >= 0 && num < 10) { 
+            return '0' + num;
+        } else {
             return num;
         }
     }
 
     function setClock(selector, endtime) {
+
         const timer = document.querySelector(selector),
-            days = timer.querySelector('#days'),
+            days = timer.querySelector("#days"),
             hours = timer.querySelector('#hours'),
             minutes = timer.querySelector('#minutes'),
             seconds = timer.querySelector('#seconds'),
@@ -71,38 +78,67 @@ window.addEventListener('DOMContentLoaded', () =>{
 
         updateClock();
 
-        function updateClock () {
-            const t = getTimeReamaining(endtime);
+        function updateClock() {
+            const t = getTimeRemaining(endtime);
 
             days.innerHTML = getZero(t.days);
             hours.innerHTML = getZero(t.hours);
             minutes.innerHTML = getZero(t.minutes);
             seconds.innerHTML = getZero(t.seconds);
 
-            if (t.total <= 0){
+            if (t.total <= 0) {
                 clearInterval(timeInterval);
             }
         }
     }
-    
-    setClock('.timer', deadLine);
 
-    
-    const modalTrigger = document.querySelector('.modal-open'),
+    setClock('.timer', deadline);
+
+    // Modal
+
+    const modalTrigger = document.querySelectorAll('[data-modal]'),
         modal = document.querySelector('.modal'),
-        modalClose = document.querySelector('[data-close]');
-    
-    modalTrigger.forEach(item => {
-        item.addEventListener('click', () => {
-            modal.classList.add('show');
-            modal.classList.remove('hide');
-        });
-    }); 
+        modalCloseBtn = document.querySelector('[data-close]');
 
-    modalClose.addEventListener('click', () => {
+    function modalOpen () {
+        modal.classList.add('show');
+        modal.classList.remove('hide');
+        document.body.style.overflow = "hidden";
+        clearInterval(modalTimer);
+    }
+    
+    function modalClose() {
         modal.classList.add('hide');
-        modal.classList.remove('show');
-    });
-    
+        modal.classList.remove('show'); 
+        document.body.style.overflow = '';   
+    }
 
+    modalTrigger.forEach(btn => {
+        btn.addEventListener('click', modalOpen);
+    });
+
+    modalCloseBtn.addEventListener('click', modalClose);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modalClose();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Escape' && modal.classList.contains('show')){
+            modalClose();
+        }
+    });
+
+    const modalTimer = setTimeout(modalOpen, 3000);
+    
+    function showModalScroll () {
+        if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight){
+            modalOpen();
+            window.removeEventListener('scroll', showModalScroll);
+        }
+    }
+
+    window.addEventListener('scroll', showModalScroll);
 });
